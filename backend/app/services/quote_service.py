@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.logging import logger
 from app.repositories.quote_repository import QuoteRepository
 from app.repositories.user_repository import UserRepository
@@ -41,6 +41,6 @@ class QuoteService:
             user_id=user_id,
             quote_text=quote_text,
             category=payload.category,
-            model_name=settings.openai_model,
+            model_name=get_settings().openai_model,
             prompt_context=payload.model_dump(),
         )

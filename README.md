@@ -10,8 +10,71 @@ Production-minded MVP for a mobile motivation app that personalizes quotes using
 ├── backend/         # FastAPI API
 ├── supabase/        # SQL migrations for schema + RLS
 ├── docs/            # architecture + endpoint contracts
+├── scripts/         # helper scripts for setup checks
 └── README.md
 ```
+
+## What already works in this codebase
+- Expo mobile app with screens for login, signup, home quote generation, favorites, history, preferences, and profile placeholder.
+- FastAPI backend with health, profile, preferences, quote generation, history, favorites, and favorite-marking routes.
+- Backend-only OpenAI integration (`backend/app/services/openai_service.py`).
+- Supabase SQL migration with required tables and row-level security policies.
+
+## 10-minute beginner setup
+
+### 1) Create your Supabase project
+1. Create a new Supabase project.
+2. In Supabase SQL Editor, run: `supabase/migrations/202604040001_init.sql`.
+3. In Supabase dashboard, copy:
+   - Project URL
+   - Anon key
+   - Service role key
+
+### 2) Fill env files (required)
+
+Create `mobile/.env` from `mobile/.env.example`:
+```env
+EXPO_PUBLIC_API_URL=http://localhost:8000
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+Create `backend/.env` from `backend/.env.example`:
+```env
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4.1-mini
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres
+```
+
+### 3) Run setup checker (recommended)
+```bash
+python scripts/check_setup.py
+```
+
+### 4) Start backend
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+cp .env.example .env  # only if you still need it
+uvicorn app.main:app --reload
+```
+
+### 5) Start mobile
+```bash
+cd mobile
+npm install
+cp .env.example .env  # only if you still need it
+npm run start
+```
+
+## If something fails
+- If backend says missing OpenAI key: set `OPENAI_API_KEY` in `backend/.env`.
+- If backend says Supabase keys missing: set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`.
+- If login fails in mobile: re-check Supabase URL + anon key in `mobile/.env`.
 
 ## Architecture
 - **Mobile**: Expo Router, Supabase Auth, Zustand, React Hook Form + Zod.
@@ -19,60 +82,12 @@ Production-minded MVP for a mobile motivation app that personalizes quotes using
 - **DB/Auth**: Supabase Postgres + Supabase Auth.
 - **AI**: OpenAI integration isolated to `backend/app/services/openai_service.py`.
 
-## MVP Decisions for Fast Delivery
-- Backend uses Supabase admin API for token validation and table access to keep auth-aware behavior centralized.
-- `QuoteService` includes explicit placeholders for quota/rate-limit/moderation hooks instead of fake full implementations.
-- Profile screen is implemented as a functional placeholder with sign-out support.
-- Daily reminder is a local notification scheduled at 9:00 AM device time.
-
-## Environment Setup
-
-### Required secret files
-- `mobile/.env` (from `mobile/.env.example`)
-- `backend/.env` (from `backend/.env.example`)
-
-### Mobile `.env`
-- `EXPO_PUBLIC_API_URL`
-- `EXPO_PUBLIC_SUPABASE_URL`
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-
-### Backend `.env`
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `DATABASE_URL`
-
-## Run Locally
-
-### 1) Supabase
-- Apply migration in `supabase/migrations/202604040001_init.sql` using Supabase SQL editor or CLI.
-
-### 2) Backend
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
-cp .env.example .env
-uvicorn app.main:app --reload
-```
-
-### 3) Mobile
-```bash
-cd mobile
-npm install
-cp .env.example .env
-npm run start
-```
-
-## API and Architecture Docs
+## API and architecture docs
 - `docs/api.md`
 - `docs/architecture.md`
 
-## TODOs / Deferred Items
+## TODOs / deferred production hardening
 - Replace dummy middleware with distributed rate limiting (Redis).
-- Add moderation API checks pre-generation.
+- Add moderation API checks before generation.
 - Add remote push notification pipeline.
-- Add profile editing and account deletion UX.
 - Add integration tests for API routes with mocked Supabase/OpenAI.

@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Motivator",
+    "slug": "motivator",
+    "scheme": "motivator",
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}

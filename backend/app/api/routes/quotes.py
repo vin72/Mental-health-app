@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.concurrency import run_in_threadpool
 
 from app.repositories.quote_repository import QuoteRepository
 from app.schemas.quote import QuoteGenerateRequest, QuoteResponse
@@ -12,7 +13,7 @@ quote_repo = QuoteRepository()
 
 @router.post('/generate', response_model=QuoteResponse)
 async def generate_quote(payload: QuoteGenerateRequest, user: dict = Depends(get_current_user)) -> QuoteResponse:
-    data = quote_service.generate(user['id'], payload)
+    data = await run_in_threadpool(quote_service.generate, user['id'], payload)
     return QuoteResponse(**data)
 
 

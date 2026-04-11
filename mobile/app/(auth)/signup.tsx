@@ -13,8 +13,8 @@ export default function SignUpScreen() {
   const { register, setValue, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (values: FormValues) => {
-    const { error } = await supabase.auth.signUp(values);
-    if (!error) router.replace('/(tabs)/home');
+    const { data, error } = await supabase.auth.signUp(values);
+    if (!error && data.session) router.replace('/(tabs)/home');
   };
 
   register('email');
